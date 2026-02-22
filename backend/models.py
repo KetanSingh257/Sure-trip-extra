@@ -1,4 +1,4 @@
-"""SureTrip v3 — Multi-City Database Models"""
+
 from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Text
 from sqlalchemy.orm import relationship
 from database import Base

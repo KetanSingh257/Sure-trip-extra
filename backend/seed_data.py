@@ -1,15 +1,7 @@
-"""
-SureTrip v3 — Seed Data
-========================
-Realistic transport data based on public averages:
-- Indian Railways timetables
-- DGCA domestic flight data
-- NH distance charts
-- Urban traffic studies
+from database import engine, Base, SessionLocal
+import models
 
-Cities: Delhi, Lucknow, Chandigarh, Jaipur, Pune
-Routes: All 10 bidirectional combinations (5C2 = 10)
-"""
+Base.metadata.create_all(bind=engine)
 
 CITIES = {
     "delhi": {
@@ -546,3 +538,115 @@ VALID_COMBINATIONS = [
     for i in range(len(CITY_LIST))
     for j in range(i+1, len(CITY_LIST))
 ]
+print("Seed file loaded")
+
+def seed_database():
+
+    print("Seeding started...")
+
+    db = SessionLocal()
+
+    city_map = {}
+    mode_map = {}
+
+
+
+    for key, city in CITIES.items():
+
+        city_obj = models.City(
+            name=city["name"],
+            code=city["code"],
+            latitude=city["lat"],
+            longitude=city["lon"],
+            emoji=city["emoji"]
+        )
+
+        db.add(city_obj)
+        db.commit()
+        db.refresh(city_obj)
+
+        city_map[key] = city_obj.id
+
+      
+
+        for loc_type, loc in city["hubs"].items():
+
+            location = models.Location(
+                city_id=city_obj.id,
+                name=loc["name"],
+                type=loc_type,
+                latitude=loc["lat"],
+                longitude=loc["lon"]
+            )
+
+            db.add(location)
+
+    db.commit()
+
+
+  
+
+    for key, mode in TRANSPORT_MODES.items():
+
+        mode_obj = models.TransportMode(
+            name=mode["name"],
+            icon=mode["icon"],
+            color=mode["color"],
+            avg_speed_kmph=mode["avg_speed_kmph"],
+            base_cost_per_km=mode["base_cost_per_km"],
+            variance_factor=mode["variance_factor"],
+            fixed_variance=mode["fixed_variance"],
+            notes=mode["notes"]
+        )
+
+        db.add(mode_obj)
+        db.commit()
+        db.refresh(mode_obj)
+
+        mode_map[key] = mode_obj.id
+
+
+  
+    for (src, dst), route in ROUTES.items():
+
+        route_obj = models.Route(
+
+            source_city_id=city_map[src],
+            destination_city_id=city_map[dst],
+            distance_km=route["distance_km"]
+
+        )
+
+        db.add(route_obj)
+        db.commit()
+        db.refresh(route_obj)
+
+
+        # Insert Route Options
+
+        for opt_type in ["fastest", "cheapest", "reliable"]:
+
+            for leg in route[opt_type]["legs"]:
+
+                option = models.RouteOption(
+
+                    route_id=route_obj.id,
+                    mode_id=mode_map[leg["mode"]],
+                    option_type=opt_type,
+                    base_travel_time=leg["base_time"],
+                    cost=leg["cost"],
+                    variance_minutes=leg["variance"],
+                    recommended_buffer=leg["buffer"]
+
+                )
+
+                db.add(option)
+
+    db.commit()
+
+    db.close()
+
+    print("Database fully seeded!")
+
+    if __name__ == "__main__":
+     seed_database()

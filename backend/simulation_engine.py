@@ -68,9 +68,7 @@ class DelayPropagationSimulator:
         departure: datetime,
         deadline: datetime,
     ) -> SimulationResult:
-        """
-        Full delay propagation Monte Carlo.
-        """
+        
         n_legs = len(legs)
         deadline_min = (deadline - departure).total_seconds() / 60.0
 

@@ -24,8 +24,26 @@ CITIES = seed_data.CITIES
 ROUTES = seed_data.ROUTES
 TRANSPORT_MODES = seed_data.TRANSPORT_MODES
 
+from fastapi import FastAPI
+from database import Base, engine
+import models
+
+app = FastAPI()
+
+Base.metadata.create_all(bind=engine)
+
+@app.get("/")
+def read_root():
+    return {"message": "Database created"}
+
 app = FastAPI(title="SureTrip v3 API", version="3.0.0")
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],   # for development
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.on_event("startup")
 async def startup():
@@ -169,3 +187,68 @@ def health(): return {"status": "healthy"}
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+
+
+from fastapi import FastAPI
+from pydantic import BaseModel
+
+from ml_engine import predict_reliability
+
+
+app = FastAPI()
+
+
+class JourneyInput(BaseModel):
+
+    distance_km: float
+    total_base_time_min: float
+    total_buffer_min: float
+    total_variance_min: float
+    total_cost_inr: float
+    n_legs: int
+    has_flight: int
+    has_train: int
+    tightest_buffer_ratio: float
+    max_leg_variance_min: float
+    min_buffer_min: float
+    variance_pct_of_base: float
+    buffer_pct_of_base: float
+    deadline_multiplier: float
+    option_type_enc: int
+
+    src_delhi: int
+    src_lucknow: int
+    src_chandigarh: int
+    src_jaipur: int
+    src_pune: int
+
+    dst_delhi: int
+    dst_lucknow: int
+    dst_chandigarh: int
+    dst_jaipur: int
+    dst_pune: int
+
+    std_arrival_min: float
+    mean_final_delay_min: float
+    risk_level_enc: int
+
+
+@app.post("/predict")
+def predict(data: JourneyInput):
+
+    data_dict = data.dict()
+
+    prob = predict_reliability(data_dict)
+
+    # Risk logic
+    if prob > 80:
+        risk = "Low"
+    elif prob > 60:
+        risk = "Medium"
+    else:
+        risk = "High"
+
+    return {
+        "reliability_percent": prob,
+        "risk_level": risk
+    }
