@@ -5,7 +5,7 @@
 > ---
 
 
-
+```
 ---
 | Feature        | v3                     | v4                                           |
 | -------------- | ---------------------- | -------------------------------------------- |
@@ -135,21 +135,22 @@ All transport parameters are based on publicly available averages and real-world
 
 ### Delay Propagation (Core Innovation)
 
-```
+
 for each simulation run:
   carried_delay ← 0
 
-  for each leg_i:
-    raw_delay ← Normal(0, variance_i)        [clipped to -0.5σ … +2.5σ]
-    overflow_i = max(0, carried_delay + raw_delay - buffer_i)
-    carried_delay ← overflow_i               ← cascades to next leg
-
+ for each leg:
+  delay ~ Normal(0, variance)
+  overflow = max(0, delay + carried - buffer)
+  carried = overflow
+  
   arrival = Σ(base_time_i) + Σ(buffer_i) + carried_delay - last_buffer
   success = arrival ≤ deadline
 ```
 
 ### Buffer Sizing Rule
 
+```
 Buffer is sized proportional to variance — not a fixed constant:
 - `buffer = (variance × 0.6) + fixed_transfer_time`
 - Short urban legs: 15–20 min buffers
@@ -165,7 +166,7 @@ Buffer is sized proportional to variance — not a fixed constant:
 | < 60% | High | 🔴 Red |
 
 ### Recommendation Score
-```
+
 score = reliability × 0.60 + speed_score × 0.25 + cost_score × 0.15
 ```
 
@@ -179,6 +180,7 @@ score = reliability × 0.60 + speed_score × 0.25 + cost_score × 0.15
 POST /plan-journey?source=delhi&destination=pune&departure_time=2024-03-15T08:00:00&deadline_time=2024-03-15T14:00:00&n_simulations=1000
 ```
 
+```
 {
   "journey_options": [
     {
