@@ -1,4 +1,4 @@
-# SureTrip v3 — Multi-City Reliability Intelligence
+# SureTrip — Multi-City Reliability Intelligence
 
 > Journey reliability quantified across 6 cities and 30 routes.
 > Delhi  Lucknow  Chandigarh  Jaipur  Pune  Shimla
