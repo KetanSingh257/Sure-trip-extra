@@ -1,5 +1,5 @@
 """
-SureTrip v3 — FastAPI Backend
+SureMyTrip — FastAPI Backend
 Multi-city reliability-aware journey planning
 """
 import sys, os
@@ -23,7 +23,7 @@ ROUTES          = seed_data.ROUTES
 TRANSPORT_MODES = seed_data.TRANSPORT_MODES
  
 # ── app setup ────────────────────────────────────────────────────────────────
-app = FastAPI(title="SureTrip v3 API", version="3.0.0")
+app = FastAPI(title="SureMyTrip API", version="3.0.0")
  
 Base.metadata.create_all(bind=engine)
  
